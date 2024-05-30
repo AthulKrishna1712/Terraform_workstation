@@ -248,7 +248,7 @@ resource "aws_instance" "ubuntu_server" {
 }
 
 module "server" {
-  source          = "./server"
+  source          = "./modules/server"
   ami             = data.aws_ami.ubuntu.id
   subnet_id       = aws_subnet.public_subnets["public_subnet_3"].id
   security_groups = [
@@ -259,7 +259,7 @@ module "server" {
 }
 
 module "server_subnet_1" {
-  source          = "./server"
+  source          = "./modules/server"
   ami             = data.aws_ami.ubuntu.id
   subnet_id       = aws_subnet.public_subnets["public_subnet_1"].id
   security_groups = [
