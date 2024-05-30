@@ -40,9 +40,9 @@ resource "aws_subnet" "private_subnets" {
 
 #Deploy the public subnets
 resource "aws_subnet" "public_subnets" {
-  for_each                = var.public_subnets
-  vpc_id                  = aws_vpc.vpc.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value + 100)
+  for_each          = var.public_subnets
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value + 100)
   availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
   #availability_zone       = tolist(data.aws_availability_zones.available.names)[each.value]
   map_public_ip_on_launch = true
@@ -217,7 +217,7 @@ resource "aws_instance" "ubuntu_server" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
   subnet_id                   = aws_subnet.public_subnets["public_subnet_1"].id
-  security_groups             = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id] 
+  security_groups             = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id]
   associate_public_ip_address = true
   key_name                    = aws_key_pair.generated.key_name
   connection {
@@ -244,13 +244,13 @@ resource "aws_instance" "ubuntu_server" {
       "sudo git clone https://github.com/hashicorp/demo-terraform-101 /tmp",
       "sudo sh /tmp/assets/setup-web.sh",
     ]
-  } 
+  }
 }
 
 module "server" {
-  source          = "./modules/server"
-  ami             = data.aws_ami.ubuntu.id
-  subnet_id       = aws_subnet.public_subnets["public_subnet_3"].id
+  source    = "./modules/server"
+  ami       = data.aws_ami.ubuntu.id
+  subnet_id = aws_subnet.public_subnets["public_subnet_3"].id
   security_groups = [
     aws_security_group.vpc-ping.id,
     aws_security_group.ingress-ssh.id,
@@ -259,9 +259,9 @@ module "server" {
 }
 
 module "server_subnet_1" {
-  source          = "./modules/server"
-  ami             = data.aws_ami.ubuntu.id
-  subnet_id       = aws_subnet.public_subnets["public_subnet_1"].id
+  source    = "./modules/server"
+  ami       = data.aws_ami.ubuntu.id
+  subnet_id = aws_subnet.public_subnets["public_subnet_1"].id
   security_groups = [
     aws_security_group.vpc-ping.id,
     aws_security_group.ingress-ssh.id,
