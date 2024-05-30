@@ -29,7 +29,8 @@ resource "aws_subnet" "private_subnets" {
   for_each          = var.private_subnets
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value)
-  availability_zone = tolist(data.aws_availability_zones.available.names)[each.value]
+  availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
+
 
   tags = {
     Name      = each.key
@@ -42,7 +43,8 @@ resource "aws_subnet" "public_subnets" {
   for_each                = var.public_subnets
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = cidrsubnet(var.vpc_cidr, 8, each.value + 100)
-  availability_zone       = tolist(data.aws_availability_zones.available.names)[each.value]
+  availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
+  #availability_zone       = tolist(data.aws_availability_zones.available.names)[each.value]
   map_public_ip_on_launch = true
 
   tags = {
@@ -243,4 +245,42 @@ resource "aws_instance" "ubuntu_server" {
       "sudo sh /tmp/assets/setup-web.sh",
     ]
   } 
+}
+
+module "server" {
+  source          = "./server"
+  ami             = data.aws_ami.ubuntu.id
+  subnet_id       = aws_subnet.public_subnets["public_subnet_3"].id
+  security_groups = [
+    aws_security_group.vpc-ping.id,
+    aws_security_group.ingress-ssh.id,
+    aws_security_group.vpc-web.id
+  ]
+}
+
+module "server_subnet_1" {
+  source          = "./server"
+  ami             = data.aws_ami.ubuntu.id
+  subnet_id       = aws_subnet.public_subnets["public_subnet_1"].id
+  security_groups = [
+    aws_security_group.vpc-ping.id,
+    aws_security_group.ingress-ssh.id,
+    aws_security_group.vpc-web.id
+  ]
+}
+
+output "public_ip" {
+  value = module.server.public_ip
+}
+
+output "public_dns" {
+  value = module.server.public_dns
+}
+
+output "public_ip_server_subnet_1" {
+  value = module.server_subnet_1.public_ip
+}
+
+output "public_dns_server_subnet_1" {
+  value = module.server_subnet_1.public_dns
 }
