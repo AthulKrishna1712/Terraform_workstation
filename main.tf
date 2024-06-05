@@ -29,7 +29,8 @@ resource "aws_subnet" "private_subnets" {
   for_each          = var.private_subnets
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value)
-  availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
+  #availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
+  availability_zone = "ap-south-1a"
 
 
   tags = {
@@ -43,7 +44,8 @@ resource "aws_subnet" "public_subnets" {
   for_each          = var.public_subnets
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value + 100)
-  availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
+  availability_zone = "ap-south-1b"
+  #availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
   #availability_zone       = tolist(data.aws_availability_zones.available.names)[each.value]
   map_public_ip_on_launch = true
 
@@ -291,33 +293,4 @@ output "public_dns_server_subnet_1" {
 
 output "size" {
   value = module.server.size
-}
-
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "7.5.0"
-
-  # Autoscaling group
-  name = "myasg"
-
-  vpc_zone_identifier = [aws_subnet.private_subnets["private_subnet_1"].id, aws_subnet.private_subnets["private_subnet_2"].id, aws_subnet.private_subnets["private_subnet_3"].id]
-  min_size            = 0
-  max_size            = 1
-  desired_capacity    = 1
-
-  # Launch template
-  use_lt    = true
-  create_lt = true
-
-  image_id      = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-
-  tags_as_map = {
-    Name = "Web EC2 Server 2"
-  }
-
-}
-
-output "asg_group_size" {
-  value = module.autoscaling.autoscaling_group_max_size
 }
