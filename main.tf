@@ -13,6 +13,23 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
+locals {
+  service_name = "Automation"
+  app_team     = "Cloud Team"
+  createdby    = "terraform"
+  server_name  = "ec2-${var.aws_region}"
+}
+
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Name      = local.server_name
+    Service   = local.service_name
+    AppTeam   = local.app_team
+    CreatedBy = local.createdby
+  }
+}
+
 #Define the VPC
 resource "aws_vpc" "vpc" {
   cidr_block = var.vpc_cidr
@@ -26,9 +43,9 @@ resource "aws_vpc" "vpc" {
 
 #Deploy the private subnets
 resource "aws_subnet" "private_subnets" {
-  for_each          = var.private_subnets
-  vpc_id            = aws_vpc.vpc.id
-  cidr_block        = cidrsubnet(var.vpc_cidr, 8, each.value)
+  for_each   = var.private_subnets
+  vpc_id     = aws_vpc.vpc.id
+  cidr_block = cidrsubnet(var.vpc_cidr, 8, each.value)
   #availability_zone = tolist(data.aws_availability_zones.available.names)[min(each.value, length(data.aws_availability_zones.available.names)) - 1]
   availability_zone = "ap-south-1a"
 
@@ -228,9 +245,7 @@ resource "aws_instance" "ubuntu_server" {
     host        = self.public_ip
   }
 
-  tags = {
-    Name = "Ubuntu EC2 Server"
-  }
+  tags = local.common_tags
 
   lifecycle {
     ignore_changes = [security_groups]

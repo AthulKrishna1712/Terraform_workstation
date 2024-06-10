@@ -28,3 +28,21 @@ variable "public_subnets" {
     "public_subnet_3" = 3
   }
 }
+
+variable "variables_sub_cidr" {
+  description = "Cidr block for variable subnet"
+  type        = string
+  default     = "10.0.202.0/24"
+}
+
+variable "variables_sub_az" {
+  description = "AZ for variable subnet"
+  type        = string
+  default     = "ap-south-1a"
+}
+
+variable "variables_sub_auto_ip" {
+  description = "Set automatic ip assignment for variable subnet"
+  type        = bool
+  default     = true
+}
