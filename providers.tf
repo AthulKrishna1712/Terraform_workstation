@@ -1,4 +1,12 @@
 terraform {
+  backend "remote" {
+    hostname = "app.terraform.io"
+    organization = "athul_terraform"
+
+    workspaces {
+      name = "my-aws"
+    }
+  }
   required_providers {
     aws = {
       source  = "hashicorp/aws"
