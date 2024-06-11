@@ -290,6 +290,16 @@ module "server_subnet_1" {
   ]
 }
 
+
+resource "aws_subnet" "list_subnet" {
+  for_each          = var.ip
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = each.value.ip
+  availability_zone = each.value.az
+}
+
+
+
 output "public_ip" {
   value = module.server.public_ip
 }

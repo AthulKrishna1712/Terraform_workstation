@@ -46,3 +46,35 @@ variable "variables_sub_auto_ip" {
   type        = bool
   default     = true
 }
+
+# variable "ap-south-1-azs" {
+#     type = list(string)
+#     default = [
+#         "ap-south-1a",
+#         "ap-south-1b",
+#         "ap-south-1c",
+#     ]
+# }
+
+# variable "ap-south-1-azs" {
+#   type = map(string)
+#   default = {
+#     "prod" = "10.0.202.0/24"
+#     "dev"  = "10.0.201.0/24"
+#   }
+# }
+
+variable "ip" {
+  type = map(any)
+  default = {
+    prod = {
+      ip = "10.0.202.0/24"
+      az = "ap-south-1a"
+    }
+
+    dev = {
+      ip = "10.0.201.0/24"
+      az = "ap-south-1b"
+    }
+  }
+}
