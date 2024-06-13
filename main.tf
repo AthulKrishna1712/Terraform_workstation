@@ -1,28 +1,28 @@
 data "aws_availability_zones" "available" {}
 data "aws_region" "current" {}
 
-data "aws_s3_bucket" "data_bucket" {
-  bucket = "my_s3_bucket_test"
-}
+# data "aws_s3_bucket" "data_bucket" {
+#   bucket = "my_s3_bucket_test"
+# }
 
 
-resource "aws_iam_policy" "policy" {
-  name        = "data_bucket_policy"
-  description = "Deny access to my bucket"
-  policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:Get*",
-                "s3:List*"
-            ],
-            "Resource": "${data.aws_s3_bucket.data_bucket.arn}"
-        }
-    ]
-  })
-}
+# resource "aws_iam_policy" "policy" {
+#   name        = "data_bucket_policy"
+#   description = "Deny access to my bucket"
+#   policy = jsonencode({
+#     "Version" : "2012-10-17",
+#     "Statement" : [
+#       {
+#         "Effect" : "Allow",
+#         "Action" : [
+#           "s3:Get*",
+#           "s3:List*"
+#         ],
+#         "Resource" : "${data.aws_s3_bucket.data_bucket.arn}"
+#       }
+#     ]
+#   })
+# }
 
 
 # Terraform Data Block - Lookup Ubuntu 22.04
@@ -256,6 +256,59 @@ resource "aws_security_group" "vpc-ping" {
   }
 }
 
+# locals {
+#   ingress_rules = [{
+#     port        = 443
+#     description = "port 443"
+#     },
+#     {
+#       port        = 80
+#       description = "port 80"
+#   }]
+# }
+
+variable "web_ingress" {
+  type = map(object(
+    {
+      description = string
+      port        = number
+      protocol    = string
+      cidr_blocks = list(string)
+    }
+  ))
+  default = {
+    "80" = {
+      description = "Port 80"
+      port        = 80
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+    "443" = {
+      description = "Port 443"
+      port        = 443
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+}
+
+resource "aws_security_group" "main" {
+  name   = "core-sg"
+  vpc_id = aws_vpc.vpc.id
+
+  dynamic "ingress" {
+    for_each = var.web_ingress
+
+    content {
+      description = ingress.value.description
+      from_port   = ingress.value.port
+      to_port     = ingress.value.port
+      protocol    = "tcp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
+}
+
 resource "aws_instance" "ubuntu_server" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.micro"
@@ -344,14 +397,14 @@ output "size" {
   value = module.server.size
 }
 
-output "data-bucket-arn" {
-  value = data.aws_s3_bucket.data_bucket.arn
-}
+# output "data-bucket-arn" {
+#   value = data.aws_s3_bucket.data_bucket.arn
+# }
 
-output "data-bucket-domain-name" {
-  value = data.aws_s3_bucket.data_bucket.bucket_domain_name
-}
+# output "data-bucket-domain-name" {
+#   value = data.aws_s3_bucket.data_bucket.bucket_domain_name
+# }
 
-output "data-bucket-region" {
-  value = "The ${data.aws_s3_bucket.data_bucket.id} bucket is located in ${data.aws_s3_bucket.data_bucket.region}"
-}
+# output "data-bucket-region" {
+#   value = "The ${data.aws_s3_bucket.data_bucket.id} bucket is located in ${data.aws_s3_bucket.data_bucket.region}"
+# }
